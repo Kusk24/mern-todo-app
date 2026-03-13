@@ -17,9 +17,15 @@ pipeline {
     }
 
     stage('Build') {
+      agent {
+        docker {
+          image 'node:22-alpine'
+          reuseNode true
+        }
+      }
       steps {
-        sh 'cd TODO/todo_backend && npm ci'
-        sh 'cd TODO/todo_frontend && npm ci && npm run build'
+        sh 'cd TODO/todo_backend && npm install'
+        sh 'cd TODO/todo_frontend && npm install && npm run build'
         sh 'mkdir -p TODO/todo_backend/static && cp -r TODO/todo_frontend/build TODO/todo_backend/static/'
       }
     }
