@@ -5,6 +5,10 @@ pipeline {
     skipDefaultCheckout(true)
   }
 
+  environment {
+    IMAGE_NAME = 'winyumaung/finead-todo-app:latest'
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -22,21 +26,14 @@ pipeline {
 
     stage('Containerise') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-          sh '''
-            IMAGE_NAME="${DOCKERHUB_USERNAME}/finead-todo-app:latest"
-            echo "$IMAGE_NAME" > image_name.txt
-            docker build -t "$IMAGE_NAME" .
-          '''
-        }
+        sh 'docker build -t "$IMAGE_NAME" .'
       }
     }
 
     stage('Push') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
           sh '''
-            IMAGE_NAME="$(cat image_name.txt)"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push "$IMAGE_NAME"
             docker logout
